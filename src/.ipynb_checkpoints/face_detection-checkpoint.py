@@ -63,7 +63,7 @@ class Model_X:
         input_dict={self.input_name:input_img}        
         outputs = self.net.infer(input_dict)
         
-        face_coordinates = preprocess_output(outputs, image)
+        face_coordinates = self.preprocess_output(outputs, image)
         if len(face_coordinates) == 0:
             log.error("No face detected")
             return 0, 0
