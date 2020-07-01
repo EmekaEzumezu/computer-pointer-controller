@@ -3,18 +3,17 @@ This is a sample class for a model. You may choose to use it as-is or make any c
 This has been provided just to give you an idea of how to structure your model class.
 '''
 
-class Model_X:
+class FacialLandmarksDetectionModel:
     '''
     Class for the Face Detection Model.
     '''
-    def __init__(self, model_name, device='CPU', threshold=0.60, extensions=None):
+    def __init__(self, model_name, device='CPU', extensions=None):
         '''
         COMPLETED: Use this to set your instance variables.
         '''
         self.model_weights=model_name+'.bin'
         self.model_structure=model_name+'.xml'
         self.device=device
-        self.threshold=threshold
         self.extension = extensions
         self.net = None
 
@@ -63,15 +62,26 @@ class Model_X:
         input_dict={self.input_name:input_img}        
         outputs = self.net.infer(input_dict)
         
-        face_coordinates = preprocess_output(outputs, image)
-        if len(face_coordinates) == 0:
-            log.error("No face detected")
-            return 0, 0
+        left_eye_x_coord, left_eye_y_coord, right_eye_x_coord, right_eye_y_coord = \
+        self.preprocess_output(outputs, image)
         
-        first_detected_face = face_coordinates[0]
-        cropped_face = image[face_coordinates[1]:face_coordinates[3], face_coordinates[0]:face_coordinates[2]]
+        left_eye_x_min_coord = left_eye_x_coord - 10
+        left_eye_y_min_coord = left_eye_y_coord - 10
+        left_eye_x_max_coord = left_eye_x_coord + 10
+        left_eye_y_max_coord = left_eye_y_coord + 10
         
-        return first_detected_face, cropped_face
+        right_eye_x_min_coord = right_eye_x_coord - 10
+        right_eye_y_min_coord = right_eye_y_coord - 10
+        right_eye_x_max_coord = right_eye_x_coord + 10
+        right_eye_y_max_coord = right_eye_y_coord + 10
+        
+        left_eye = image[left_eye_x_min_coord:left_eye_x_max_coord, left_eye_y_min_coord:left_eye_y_max_coord]
+        right_eye = image[right_eye_x_min_coord:right_eye_x_max_coord, right_eye_y_min_coord:right_eye_y_max_coord]
+        
+        eye_coords = [[left_eye_x_min_coord, left_eye_y_min_coord, left_eye_x_max_coord, left_eye_y_max_coord], 
+                     [right_eye_x_min_coord, right_eye_y_min_coord, right_eye_x_max_coord, right_eye_y_max_coord]]
+        
+        return left_eye, right_eye, eye_coords
 
     def check_model(self):
         pass
@@ -95,16 +105,11 @@ class Model_X:
         initial_w = image.shape[1] # image width
         initial_h = image.shape[0] # image height
         
-        face_coordinates = []
-        net_output = outputs[self.output_name][0][0]
+        outputs = outputs[self.output_name][0]
         
-        for obj in net_output:
-            if obj[2] > self.threshold:
-                x_min = int(obj[3] * initial_w)
-                y_min = int(obj[4] * initial_h)
-                x_max = int(obj[5] * initial_w)
-                y_max = int(obj[6] * initial_h)
-                
-                face_coordinates.append([x_min, y_min, x_max, y_max])
+        left_eye_x_coord = int(outputs[0] * initial_w)
+        left_eye_y_coord = int(outputs[1] * initial_h)
+        right_eye_x_coord = int(outputs[2] * initial_w)
+        right_eye_y_coord = int(outputs[3] * initial_h)
 
-        return face_coordinates
+        return left_eye_x_coord, left_eye_y_coord, right_eye_x_coord, right_eye_y_coord
