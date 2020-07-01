@@ -54,57 +54,52 @@ class GazeEstimationModel:
         
         return
 
-    def predict(self, image):
+    def predict(self, left_eye_image, right_eye_image, head_pose_angles):
         '''
         COMPLETED: You will need to complete this method.
         This method is meant for running predictions on the input image.
         '''
-        input_img = self.preprocess_input(image)
-        input_dict={self.input_name:input_img}        
+        left_eye_input_img, right_eye_input_img = \
+        self.preprocess_input(left_eye_image, right_eye_image)
+        
+        input_dict={'left_eye_image':left_eye_input_img, 'right_eye_image':right_eye_input_img, 
+                    'head_pose_angles':head_pose_angles}        
         outputs = self.net.infer(input_dict)
         
-        face_coordinates = preprocess_output(outputs, image)
-        if len(face_coordinates) == 0:
-            log.error("No face detected")
-            return 0, 0
+        new_mouse_coords, gaze_vector = self.preprocess_output(outputs, head_pose_angles)
         
-        first_detected_face = face_coordinates[0]
-        cropped_face = image[face_coordinates[1]:face_coordinates[3], face_coordinates[0]:face_coordinates[2]]
-        
-        return first_detected_face, cropped_face
+        return new_mouse_coords, gaze_vector
 
     def check_model(self):
         pass
 
-    def preprocess_input(self, image):
+    def preprocess_input(self, left_eye, right_eye):
         '''
         Before feeding the data into the model for inference,
         you might have to preprocess it. This function is where you can do that.
         '''
-        p_frame = cv2.resize(image, (self.input_shape[3], self.input_shape[2]))
-        p_frame = p_frame.transpose((2,0,1))
-        p_frame = p_frame.reshape(1, *p_frame.shape)
+        left_eye_p_frame = cv2.resize(left_eye, (self.input_shape[3], self.input_shape[2]))
+        left_eye_p_frame = left_eye_p_frame.transpose((2,0,1))
+        left_eye_p_frame = left_eye_p_frame.reshape(1, *left_eye_p_frame.shape) # left eye pre frame
         
-        return p_frame
+        right_eye_p_frame = cv2.resize(right_eye, (self.input_shape[3], self.input_shape[2]))
+        right_eye_p_frame = right_eye_p_frame.transpose((2,0,1))
+        right_eye_p_frame = right_eye_p_frame.reshape(1, *right_eye_p_frame.shape) # right eye pre frame
+        
+        return left_eye_p_frame, right_eye_p_frame
 
-    def preprocess_output(self, outputs, image):
+    def preprocess_output(self, outputs, head_pose_angles):
         '''
         Before feeding the output of this model to the next model,
         you might have to preprocess the output. This function is where you can do that.
         '''
-        initial_w = image.shape[1] # image width
-        initial_h = image.shape[0] # image height
+        gaze_vector = outputs[self.output_name][0] # net_output
+        roll_value = head_pose_angles[2]
         
-        face_coordinates = []
-        net_output = outputs[self.output_name][0][0]
+        cos = math.cos(roll_value * math.pi / 180.0)
+        sin = math.sin(roll_value * math.pi / 180.0)
         
-        for obj in net_output:
-            if obj[2] > self.threshold:
-                x_min = int(obj[3] * initial_w)
-                y_min = int(obj[4] * initial_h)
-                x_max = int(obj[5] * initial_w)
-                y_max = int(obj[6] * initial_h)
-                
-                face_coordinates.append([x_min, y_min, x_max, y_max])
+        new_x_value = gaze_vector[0] * cos + gaze_vector[1] * sin
+        new_y_value = gaze_vector[1] * cos - gaze_vector[0] * sin
 
-        return face_coordinates
+        return (new_x_value, new_y_value), gaze_vector
