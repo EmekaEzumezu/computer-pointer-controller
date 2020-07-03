@@ -8,7 +8,7 @@ from face_detection import FaceDetectionModel
 from facial_landmarks_detection import FacialLandmarksDetectionModel
 from gaze_estimation import GazeEstimationModel
 from head_pose_estimation import HeadPoseEstimationModel
-from mouse_controller import MouseController
+#from mouse_controller import MouseController
 from argparse import ArgumentParser
 from input_feeder import InputFeeder
 
@@ -41,7 +41,7 @@ def build_argparser():
     parser.add_argument("-pt", "--prob_threshold", type=float, default=0.5,
                         help="Probability threshold for detections filtering"
                         "(0.5 by default)")
-    parser.add_argument("-flag", "--visualization_flag", required=False, nargs='+',
+    parser.add_argument("-flag", "--previewFlags", required=False, nargs='+',
                         default=[],
                         help="Specify the flags from fd hp fl ge, like --flag fd hp fl ge (Seperate each flag by space)"
                              "for see the visualization of different model outputs of each frame,"
@@ -53,13 +53,13 @@ def build_argparser():
 def infer_on_stream(args):
     
     input_file_path = args.input # Path to image or video file
-    logger_object = log.getLogger()
-    visualization_flag = args.visualization_flag
+    logger = log.getLogger()
+    previewFlags = args.previewFlags
     
-    input_feeder = input_feeder(input_file_path)
+    input_feeder = input_feeder_func(input_file_path)
     
     face_detection_instant, head_pose_estimation_instant, facial_landmarks_instant, gaze_estimation_instant = \
-    model_instants()
+    model_instants(args)
 
 #     # Checks for live feed
 #     if input_file_path == 'CAM':
@@ -104,118 +104,154 @@ def infer_on_stream(args):
     gaze_estimation_instant.load_model()
     
     input_feeder.load_data()
-        
-        
-        
-        
     
     
-    
-    
-
-
-    cap = cv2.VideoCapture(input_stream)
-    if input_stream:
-        cap.open(args.input)
-
-    if not cap.isOpened():
-        log.error("ERROR! Unable to open video source")
-
-    global initial_w, initial_h
-    #prob_threshold = args.prob_threshold
-    initial_w = cap.get(3)
-    initial_h = cap.get(4)
-
-    # Flag for the input image
-    single_image_mode = False
-
-    #iniatilize desired variables
-    global total_count, report, duration, net_output, frame, prev_counter, prev_duration, counter, dur
-    
-    total_count = 0
-    request_id=0
-    
-    report = 0
-
-
-    prev_counter = 0
-    prev_duration = 0
     counter = 0
-    dur = 0
-
-
-    # NOTE: Some code implementation gotten from 
-    # https://github.com/prateeksawhney97/People-Counter-Application-Using-Intel-OpenVINO-Toolkit/blob/master/main.py
-
-    ### TODO: Loop until stream is over ###
-    while cap.isOpened():
-
-        ### TODO: Read from the video capture ###
-        flag, frame = cap.read()
+    start_inf_time = time.time()
+    logger.error("Start inferencing on input video.. ")
+    for flag, frame in input_feeder.next_batch():
         if not flag:
             break
-        key_pressed = cv2.waitKey(60)
+        pressed_key = cv2.waitKey(60)
+        counter = counter + 1
+        face_coordinates, face_image = face_detection_instant.predict(frame.copy())
 
-        ### TODO: Pre-process the image as needed ###
-        p_frame = cv2.resize(frame, (input_shape[3], input_shape[2]))
-        p_frame = p_frame.transpose((2,0,1))
-        p_frame = p_frame.reshape(1, *p_frame.shape)
+        if face_coordinates == 0:
+            continue
 
-        ### TODO: Start asynchronous inference for specified request ###
-        net_input = {'image_tensor': p_frame,'image_info': p_frame.shape[1:]}
-        duration = None
-        infer_network.exec_net(request_id, net_input)
+        head_pose_estimation_model_output = head_pose_estimation_instant.predict(face_image)
 
-        ### TODO: Wait for the result ###
-        if infer_network.wait(request_id) == 0:
+        left_eye_image, right_eye_image, eye_coord = facial_landmarks_instant.predict(face_image)
 
-            ### TODO: Get the results of the inference request ###
-            net_output = infer_network.get_output(request_id)
+        mouse_coordinate, gaze_vector = gaze_estimation_instant.predict(left_eye_image, right_eye_image,
+                                                                             head_pose_estimation_model_output)
 
-            ### TODO: Extract any desired stats from the results ###
-            #probs = net_output[0, 0, :, 2]
+        if len(previewFlags) != 0:
+            preview_window = frame.copy()
+            if 'fd' in previewFlags:
+                if len(previewFlags) != 1:
+                    preview_window = face_image
+                else:
+                    cv2.rectangle(preview_window, (face_coordinates[0], face_coordinates[1]),
+                                  (face_coordinates[2], face_coordinates[3]), (0, 150, 0), 3)
+            if 'fl' in previewFlags:
+                if not 'fd' in previewFlags:
+                    preview_window = face_image.copy()
+                cv2.rectangle(preview_window, (eye_coord[0][0], eye_coord[0][1]), (eye_coord[0][2], eye_coord[0][3]),
+                              (150, 0, 150))
+                cv2.rectangle(preview_window, (eye_coord[1][0], eye_coord[1][1]), (eye_coord[1][2], eye_coord[1][3]),
+                              (150, 0, 150))
+            if 'hp' in previewFlags:
+                cv2.putText(preview_window,
+                            "yaw:{:.1f} | pitch:{:.1f} | roll:{:.1f}".format(head_pose_estimation_model_output[0],
+                                                                             head_pose_estimation_model_output[1],
+                                                                             head_pose_estimation_model_output[2]),
+                            (20, 20), cv2.FONT_HERSHEY_COMPLEX, 0.35, (0, 0, 0), 1)
+            if 'ge' in previewFlags:
 
-            frame, net_output, prev_counter, prev_duration, counter, dur, report, total_count, duration = \
-            desired_stats(frame, net_output, prev_counter, 
-                prev_duration, counter, dur, report, total_count, duration)
+                yaw = head_pose_estimation_model_output[0]
+                pitch = head_pose_estimation_model_output[1]
+                roll = head_pose_estimation_model_output[2]
+                focal_length = 950.0
+                scale = 50
+                center_of_face = (face_image.shape[1] / 2, face_image.shape[0] / 2, 0)
+                if 'fd' in previewFlags or 'fl' in previewFlags:
+                    draw_axes(preview_window, center_of_face, yaw, pitch, roll, scale, focal_length)
+                else:
+                    draw_axes(frame, center_of_face, yaw, pitch, roll, scale, focal_length)
 
-            ### TODO: Calculate and send relevant information on ###
-            ### current_count, total_count and duration to the MQTT server ###
-            ### Topic "person": keys of "count" and "total" ###
-            ### Topic "person/duration": key of "duration" ###
+        if len(previewFlags) != 0:
+            img_hor = np.hstack((cv2.resize(frame, (500, 500)), cv2.resize(preview_window, (500, 500))))
+        else:
+            img_hor = cv2.resize(frame, (500, 500))
 
-            # When new person enters the video
-            client.publish('person',
-               json.dumps({
-                   'count': report, 'total': total_count}),
-               qos=0, retain=False)
+        cv2.imshow('Visualization', img_hor)
+        mouse_controller_object.move(mouse_coordinate[0], mouse_coordinate[1])
 
-            # Person duration in the video is calculated
-            if duration is not None:
-                client.publish('person/duration', 
-                    json.dumps({'duration': duration}), 
-                    qos=0, retain=False)
+        if pressed_key == 27:
+            logger.error("exit key pressed..")
+            break
+    inference_time = round(time.time() - start_inf_time, 1)
+    fps = int(counter) / inference_time
+    logger.error("counter {} seconds".format(counter))
+    logger.error("total inference time {} seconds".format(inference_time))
+    logger.error("fps {} frame/second".format(fps))
+    logger.error("Video has ended")
+    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'stats.txt'), 'w') as f:
+        f.write(str(inference_time) + '\n')
+        f.write(str(fps) + '\n')
+        f.write(str(load_total_time) + '\n')
 
-
-            if key_pressed == 27:
-                break
-
-        ### TODO: Send the frame to the FFMPEG server ###
-        frame = cv2.resize(frame, (768, 432))
-        sys.stdout.buffer.write(frame)
-        sys.stdout.flush()
-
-        ### TODO: Write an output image if `single_image_mode` ###
-        if single_image_mode:
-            cv2.imwrite('output_image.jpg', frame)
-
-    cap.release()
+    #logger.error("VideoStream ended...")
+    input_feeder.close()
     cv2.destroyAllWindows()
-    client.disconnect()
-    infer_network.clean()
+    
+    #logger.error("VideoStream ended...")
+    #cv2.destroyAllWindows()
+    #inputFeeder.close()
+
+# NOTE: draw_axes and build_camera_matrix code implementation gotten from 
+# https://knowledge.udacity.com/questions/171017    
+def draw_axes(frame, center_of_face, yaw, pitch, roll, scale, focal_length):
+    yaw *= np.pi / 180.0
+    pitch *= np.pi / 180.0
+    roll *= np.pi / 180.0
+    cx = int(center_of_face[0])
+    cy = int(center_of_face[1])
+    r_x = np.array([[1, 0, 0],
+                    [0, math.cos(pitch), -math.sin(pitch)],
+                    [0, math.sin(pitch), math.cos(pitch)]])
+    r_y = np.array([[math.cos(yaw), 0, -math.sin(yaw)],
+                    [0, 1, 0],
+                    [math.sin(yaw), 0, math.cos(yaw)]])
+    r_z = np.array([[math.cos(roll), -math.sin(roll), 0],
+                    [math.sin(roll), math.cos(roll), 0],
+                    [0, 0, 1]])
+
+    r = r_z @ r_y @ r_x
+    camera_matrix = build_camera_matrix(center_of_face, focal_length)
+    xaxis = np.array(([1 * scale, 0, 0]), dtype='float32').reshape(3, 1)
+    yaxis = np.array(([0, -1 * scale, 0]), dtype='float32').reshape(3, 1)
+    zaxis = np.array(([0, 0, -1 * scale]), dtype='float32').reshape(3, 1)
+    zaxis1 = np.array(([0, 0, 1 * scale]), dtype='float32').reshape(3, 1)
+    o = np.array(([0, 0, 0]), dtype='float32').reshape(3, 1)
+    o[2] = camera_matrix[0][0]
+    xaxis = np.dot(r, xaxis) + o
+    yaxis = np.dot(r, yaxis) + o
+    zaxis = np.dot(r, zaxis) + o
+    zaxis1 = np.dot(r, zaxis1) + o
+    xp2 = (xaxis[0] / xaxis[2] * camera_matrix[0][0]) + cx
+    yp2 = (xaxis[1] / xaxis[2] * camera_matrix[1][1]) + cy
+    p2 = (int(xp2), int(yp2))
+    cv2.line(frame, (cx, cy), p2, (0, 0, 255), 2)
+    xp2 = (yaxis[0] / yaxis[2] * camera_matrix[0][0]) + cx
+    yp2 = (yaxis[1] / yaxis[2] * camera_matrix[1][1]) + cy
+    p2 = (int(xp2), int(yp2))
+    cv2.line(frame, (cx, cy), p2, (0, 255, 0), 2)
+    xp1 = (zaxis1[0] / zaxis1[2] * camera_matrix[0][0]) + cx
+    yp1 = (zaxis1[1] / zaxis1[2] * camera_matrix[1][1]) + cy
+    p1 = (int(xp1), int(yp1))
+    xp2 = (zaxis[0] / zaxis[2] * camera_matrix[0][0]) + cx
+    yp2 = (zaxis[1] / zaxis[2] * camera_matrix[1][1]) + cy
+    p2 = (int(xp2), int(yp2))
+    cv2.line(frame, p1, p2, (255, 0, 0), 2)
+    cv2.circle(frame, p2, 3, (255, 0, 0), 2)
+    return frame
+
+
+def build_camera_matrix(center_of_face, focal_length):
+    cx = int(center_of_face[0])
+    cy = int(center_of_face[1])
+    camera_matrix = np.zeros((3, 3), dtype='float32')
+    camera_matrix[0][0] = focal_length
+    camera_matrix[0][2] = cx
+    camera_matrix[1][1] = focal_length
+    camera_matrix[1][2] = cy
+    camera_matrix[2][2] = 1
+    return camera_matrix
     
     
-def input_feeder(input_file_path):
+def input_feeder_func(input_file_path):
     # Checks for live feed
     if input_file_path == 'CAM':
         input_feeder = InputFeeder("cam")
@@ -227,7 +263,7 @@ def input_feeder(input_file_path):
         
     return input_feeder
 
-def model_instants():
+def model_instants(args):
 #     model_paths_dict = {'face_detection':args.face_detection,
 #                         'head_pose_estimation':args.head_pose_estimation,
 #                         'facial_landmarks_detection':args.facial_landmarks_detection,
@@ -249,7 +285,7 @@ def model_instants():
                                                   device=args.device, 
                                                   extensions=args.cpu_extension)
     
-    mouse_controller_instant = MouseController('medium', 'fast')
+    #mouse_controller_instant = MouseController('medium', 'fast')
     
     return face_detection_instant, head_pose_estimation_instant, facial_landmarks_instant, gaze_estimation_instant 
 
