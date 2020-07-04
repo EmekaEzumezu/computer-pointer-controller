@@ -75,7 +75,7 @@ class FaceDetectionModel:
             return 0, 0
         
         first_detected_face = face_coordinates[0]
-        cropped_face = image[face_coordinates[1]:face_coordinates[3], face_coordinates[0]:face_coordinates[2]]
+        cropped_face = image[first_detected_face[1]:first_detected_face[3], first_detected_face[0]:first_detected_face[2]]
         
         return first_detected_face, cropped_face
 

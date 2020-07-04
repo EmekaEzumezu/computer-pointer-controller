@@ -37,7 +37,7 @@ class InputFeeder:
         while True:
             for _ in range(10):
                 flag, frame=self.cap.read()
-            yield frame
+            yield flag, frame
 
 
     def close(self):

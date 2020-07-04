@@ -67,8 +67,7 @@ class HeadPoseEstimationModel:
         input_img = self.preprocess_input(image)
         input_dict={self.input_name:input_img}        
         outputs = self.net.infer(input_dict)
-        
-        result = self.preprocess_output(outputs, image)
+        result = self.preprocess_output(outputs)
         
         return result
 

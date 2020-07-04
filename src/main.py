@@ -116,7 +116,13 @@ def infer_on_stream(args):
         counter = counter + 1
         face_coordinates, face_image = face_detection_instant.predict(frame.copy())
 
-        if face_coordinates == 0:
+#         if face_coordinates == 0:
+#             continue
+            
+        if type(face_image)==int:
+            logger.error("Unable to detect the face.")
+            if key==27:
+                break
             continue
 
         head_pose_estimation_model_output = head_pose_estimation_instant.predict(face_image)

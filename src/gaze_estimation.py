@@ -7,6 +7,7 @@ import cv2
 import os
 import numpy as np
 import logging as log
+import math
 from openvino.inference_engine import IENetwork, IECore
 
 class GazeEstimationModel:
@@ -84,11 +85,11 @@ class GazeEstimationModel:
         Before feeding the data into the model for inference,
         you might have to preprocess it. This function is where you can do that.
         '''
-        left_eye_p_frame = cv2.resize(left_eye, (self.input_shape[3], self.input_shape[2]))
+        left_eye_p_frame = cv2.resize(left_eye, (60, 60))
         left_eye_p_frame = left_eye_p_frame.transpose((2,0,1))
         left_eye_p_frame = left_eye_p_frame.reshape(1, *left_eye_p_frame.shape) # left eye pre frame
         
-        right_eye_p_frame = cv2.resize(right_eye, (self.input_shape[3], self.input_shape[2]))
+        right_eye_p_frame = cv2.resize(right_eye, (60, 60))
         right_eye_p_frame = right_eye_p_frame.transpose((2,0,1))
         right_eye_p_frame = right_eye_p_frame.reshape(1, *right_eye_p_frame.shape) # right eye pre frame
         
