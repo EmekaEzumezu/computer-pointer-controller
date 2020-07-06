@@ -54,7 +54,7 @@ class GazeEstimationModel:
             log.error("Check whether extensions are available to add to IECore.")
             # exit(1)
             # Add a CPU extension, if applicable
-            if cpu_extension and "CPU" in device:
+            if self.extension and "CPU" in self.device:
                 self.core.add_extension(self.extension, self.device)
         
         self.net = self.core.load_network(network=self.model, device_name=self.device, num_requests=1)

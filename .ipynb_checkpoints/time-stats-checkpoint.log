@@ -1,12 +1,39 @@
-2020-07-05 04:54:27,448 [INFO] ========== Models Load time ==========
-2020-07-05 04:54:27,682 [INFO] Face Detection Model: 232.0ms
-2020-07-05 04:54:27,791 [INFO] Headpose Estimation Model: 107.8ms
-2020-07-05 04:54:27,862 [INFO] Facial Landmarks Detection Model: 69.1ms
-2020-07-05 04:54:27,989 [INFO] Gaze Estimation Model: 125.3ms
-2020-07-05 04:54:27,990 [INFO] ========== End ==========
-2020-07-05 04:54:43,774 [INFO] ========== Models Inference time ==========
-2020-07-05 04:54:43,775 [INFO] Face Detection Model:52.7ms
-2020-07-05 04:54:43,776 [INFO] Facial Landmarks Detection Model:0.9ms
-2020-07-05 04:54:43,777 [INFO] Headpose Estimation Model:3.0ms
-2020-07-05 04:54:43,779 [INFO] Gaze Estimation Model:3.6ms
-2020-07-05 04:54:43,780 [INFO] ========== End ==========
+2020-07-06 01:19:35,793 [INFO] ========== Models Load time ==========
+2020-07-06 01:19:36,325 [INFO] Face Detection Model: 530.0ms
+2020-07-06 01:19:36,454 [INFO] Headpose Estimation Model: 125.4ms
+2020-07-06 01:19:36,531 [INFO] Facial Landmarks Detection Model: 76.6ms
+2020-07-06 01:19:36,670 [INFO] Gaze Estimation Model: 137.0ms
+2020-07-06 01:19:36,671 [INFO] ========== End ==========
+2020-07-06 01:19:52,333 [INFO] ========== Models Inference time ==========
+2020-07-06 01:19:52,336 [INFO] Face Detection Model:53.7ms
+2020-07-06 01:19:52,338 [INFO] Facial Landmarks Detection Model:0.9ms
+2020-07-06 01:19:52,340 [INFO] Headpose Estimation Model:3.0ms
+2020-07-06 01:19:52,341 [INFO] Gaze Estimation Model:3.6ms
+2020-07-06 01:19:52,341 [INFO] ========== End ==========
+2020-07-06 01:28:07,140 [INFO] ========== Models Load time ==========
+2020-07-06 01:28:07,380 [INFO] Face Detection Model: 237.4ms
+2020-07-06 01:28:07,492 [INFO] Headpose Estimation Model: 108.7ms
+2020-07-06 01:28:07,568 [INFO] Facial Landmarks Detection Model: 74.3ms
+2020-07-06 01:28:07,699 [INFO] Gaze Estimation Model: 129.5ms
+2020-07-06 01:28:07,701 [INFO] ========== End ==========
+2020-07-06 01:28:22,631 [INFO] ========== Models Inference time ==========
+2020-07-06 01:28:22,633 [INFO] Face Detection Model:52.2ms
+2020-07-06 01:28:22,636 [INFO] Facial Landmarks Detection Model:0.9ms
+2020-07-06 01:28:22,638 [INFO] Headpose Estimation Model:2.9ms
+2020-07-06 01:28:22,639 [INFO] Gaze Estimation Model:3.6ms
+2020-07-06 01:28:22,639 [INFO] ========== End ==========
+2020-07-06 01:37:40,853 [INFO] ========== Models Load time ==========
+2020-07-06 01:37:41,097 [INFO] Face Detection Model: 242.0ms
+2020-07-06 01:37:41,873 [INFO] Headpose Estimation Model: 773.5ms
+2020-07-06 01:37:42,040 [INFO] Facial Landmarks Detection Model: 165.0ms
+2020-07-06 01:37:42,841 [INFO] Gaze Estimation Model: 799.6ms
+2020-07-06 01:37:42,844 [INFO] ========== End ==========
+2020-07-06 01:37:57,753 [INFO] ========== Models Inference time ==========
+2020-07-06 01:37:57,755 [INFO] Face Detection Model:52.3ms
+2020-07-06 01:37:57,758 [INFO] Facial Landmarks Detection Model:1.1ms
+2020-07-06 01:37:57,760 [INFO] Headpose Estimation Model:2.7ms
+2020-07-06 01:37:57,760 [INFO] Gaze Estimation Model:3.1ms
+2020-07-06 01:37:57,761 [INFO] ========== End ==========
+
+GPU:-
+FP32:
