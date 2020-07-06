@@ -50,7 +50,7 @@ Download and install the OpenVino Toolkit, the installation guide can be found [
 
 2. Run main.py file:-
 
-*  To run CPU:
+*  To run on CPU:
    ```
    python3 src/main.py -fd intel/face-detection-adas-binary-0001/FP32-INT1/face-detection-adas-binary-0001 \
         -fl intel/landmarks-regression-retail-0009/FP16/landmarks-regression-retail-0009 \
@@ -59,7 +59,7 @@ Download and install the OpenVino Toolkit, the installation guide can be found [
         -i bin/demo.mp4 \
         -d CPU
    ``` 
-*  To run GPU:
+*  To run on GPU:
    ```
    python3 src/main.py -fd intel/face-detection-adas-binary-0001/FP32-INT1/face-detection-adas-binary-0001 \
         -fl intel/landmarks-regression-retail-0009/FP16/landmarks-regression-retail-0009 \
@@ -68,7 +68,7 @@ Download and install the OpenVino Toolkit, the installation guide can be found [
         -i bin/demo.mp4 \
         -d GPU
    ``` 
-*  To run FPGA:
+*  To run on FPGA:
    ```
    python3 src/main.py -fd intel/face-detection-adas-binary-0001/FP32-INT1/face-detection-adas-binary-0001 \
         -fl intel/landmarks-regression-retail-0009/FP16/landmarks-regression-retail-0009 \
@@ -141,18 +141,21 @@ Optional arguments:
 ### Models load and inference time for CPU
 
 * Load Time:
+
 | Factor/Model | Face Detection   | Landmarks Detetion| Headpose Estimation | Gaze Estimation |
-|--------------|------------------|-------------|---------------|-----------|
-|    FP32      |  530.0ms         | 76.6ms      | 125.4ms       | 137.0ms   |
-|    FP16      |  NA              | 74.3ms      | 108.7ms       | 129.5ms   |  
-|    FP32-INT8 |  NA              | 165.0ms     | 773.5ms       | 799.6ms   |
+|--------------|------------------|-------------------|---------------------|-----------------|
+|    FP32      |  530.0ms         |       76.6ms      |       125.4ms       |     137.0ms     |
+|    FP16      |  NA              |       74.3ms      |       108.7ms       |     129.5ms     |  
+|    FP32-INT8 |  NA              |       165.0ms     |       773.5ms       |     799.6ms     |
+
 
 * Inference Time:
+
 | Factor/Model | Face Detection   | Landmarks Detetion | Headpose Estimation | Gaze Estimation |
-|--------------|----------------|-----------|-------------|-----------|
-|   FP32       | 53.7ms         | 0.9ms     | 3.0ms       | 3.6ms     |
-|   FP16       | NA             | 0.9ms     | 2.9ms       | 3.6ms     |
-|   FP32-INT8  | NA             | 1.1ms     | 2.7ms       | 3.1ms     |
+|--------------|------------------|--------------------|---------------------|-----------------|
+|   FP32       |   53.7ms         |        0.9ms       |        3.0ms        |      3.6ms      |
+|   FP16       |   NA             |        0.9ms       |        2.9ms        |      3.6ms      |
+|   FP32-INT8  |   NA             |        1.1ms       |        2.7ms        |      3.1ms      |
 
 
 ## Results

@@ -37,3 +37,15 @@
 
 GPU:-
 FP32:
+2020-07-06 05:26:37,798 [INFO] ========== Models Load time ==========
+2020-07-06 05:26:38,036 [INFO] Face Detection Model: 235.3ms
+2020-07-06 05:26:38,122 [INFO] Headpose Estimation Model: 83.7ms
+2020-07-06 05:26:38,194 [INFO] Facial Landmarks Detection Model: 70.8ms
+2020-07-06 05:26:38,305 [INFO] Gaze Estimation Model: 110.0ms
+2020-07-06 05:26:38,307 [INFO] ========== End ==========
+2020-07-06 05:26:53,055 [INFO] ========== Models Inference time ==========
+2020-07-06 05:26:53,058 [INFO] Face Detection Model:51.7ms
+2020-07-06 05:26:53,060 [INFO] Facial Landmarks Detection Model:0.8ms
+2020-07-06 05:26:53,062 [INFO] Headpose Estimation Model:2.8ms
+2020-07-06 05:26:53,063 [INFO] Gaze Estimation Model:3.4ms
+2020-07-06 05:26:53,063 [INFO] ========== End ==========
