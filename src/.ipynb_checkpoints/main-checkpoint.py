@@ -107,10 +107,7 @@ def infer_on_stream(args):
         head_pose_estimation_infer_time = 0
         gaze_estimation_infer_time = 0
 
-    #    counter = 0
-    #    start_inf_time = time.time()
-        #logger.error("Start inferencing on input video.. ")
-        
+
         ### Loop until stream is over ###
         for flag, frame in input_feeder.next_batch():
             if not flag:
@@ -118,14 +115,10 @@ def infer_on_stream(args):
             pressed_key = cv2.waitKey(60)
 
             frame_count += 1
-    #        counter = counter + 1
 
             start_time = time.time()
             face_coordinates, face_image = face_detection_instant.predict(frame.copy())
             face_detection_infer_time += time.time() - start_time
-
-    #         if face_coordinates == 0:
-    #             continue
 
             if type(face_image)==int:
                 logger.error("Unable to detect the face.")
@@ -181,31 +174,21 @@ def infer_on_stream(args):
                         draw_axes(frame, center_of_face, yaw, pitch, roll, scale, focal_length)
 
             if len(previewFlags) != 0:
-                img_hor = np.hstack((cv2.resize(frame, (500, 500)), cv2.resize(preview_window, (500, 500))))
+                out_img = np.hstack((cv2.resize(frame, (500, 500)), cv2.resize(preview_window, (500, 500))))
             else:
-                img_hor = cv2.resize(frame, (500, 500))
+                out_img = cv2.resize(frame, (500, 500))
                 
             
             # Saving the image 
-            cv2.imwrite('output_images/demo.png', img_hor)
+            cv2.imwrite('output_images/demo.png', out_img)
             
             
-            #cv2.imshow('Visualization', img_hor)
+            #cv2.imshow('Visualization', out_img)
             #mouse_controller_object.move(new_mouse_coords[0], new_mouse_coords[1])
 
             if pressed_key == 27:
                 logger.error("exit key pressed..")
                 break
-#        inference_time = round(time.time() - start_inf_time, 1)
-    #    fps = int(counter) / inference_time
-    #     logger.error("counter {} seconds".format(counter))
-    #     logger.error("total inference time {} seconds".format(inference_time))
-    #     logger.error("fps {} frame/second".format(fps))
-    #     logger.error("Video has ended")
-#         with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'stats.txt'), 'w') as f:
-#             f.write(str(inference_time) + '\n')
-#             f.write(str(fps) + '\n')
-#             f.write(str(load_total_time) + '\n')
 
         #logging inference times
         if(frame_count > 0):
@@ -216,13 +199,13 @@ def infer_on_stream(args):
             logging.info("Gaze Estimation Model:{:.1f}ms".format(1000* gaze_estimation_infer_time/frame_count))
             logging.info("========== End ==========") 
 
-        #logger.error("VideoStream ended...")
         input_feeder.close()
         cv2.destroyAllWindows()
     
     except Exception as e:
         logging.exception("Error running inference:" + str(e))
 
+        
 # NOTE: draw_axes and build_camera_matrix code implementation gotten from 
 # https://knowledge.udacity.com/questions/171017    
 def draw_axes(frame, center_of_face, yaw, pitch, roll, scale, focal_length):
