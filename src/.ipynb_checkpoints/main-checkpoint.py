@@ -11,7 +11,7 @@ from face_detection import FaceDetectionModel
 from facial_landmarks_detection import FacialLandmarksDetectionModel
 from gaze_estimation import GazeEstimationModel
 from head_pose_estimation import HeadPoseEstimationModel
-#from mouse_controller import MouseController
+from mouse_controller import MouseController
 from argparse import ArgumentParser
 from input_feeder import InputFeeder
 
@@ -72,7 +72,7 @@ def infer_on_stream(args):
 
         input_feeder = input_feeder_func(input_file_path)
 
-        face_detection_instant, head_pose_estimation_instant, facial_landmarks_instant, gaze_estimation_instant = \
+        face_detection_instant, head_pose_estimation_instant, facial_landmarks_instant, gaze_estimation_instant, mouse_controller_instant = \
         model_instants(args)
 
         ### Loading and logging the model load time ###
@@ -183,11 +183,11 @@ def infer_on_stream(args):
             cv2.imwrite('output_images/demo.png', out_img)
             
             
-            #cv2.imshow('Visualization', out_img)
-            #mouse_controller_object.move(new_mouse_coords[0], new_mouse_coords[1])
+            cv2.imshow('Visualization', out_img)
+            mouse_controller_instant.move(new_mouse_coords[0], new_mouse_coords[1])
 
             if pressed_key == 27:
-                logger.error("exit key pressed..")
+                logger.error("exit key pressed")
                 break
 
         #logging inference times
@@ -297,9 +297,9 @@ def model_instants(args):
                                                   device=args.device, 
                                                   extensions=args.cpu_extension)
     
-    #mouse_controller_instant = MouseController('medium', 'fast')
+    mouse_controller_instant = MouseController('medium', 'fast')
     
-    return face_detection_instant, head_pose_estimation_instant, facial_landmarks_instant, gaze_estimation_instant 
+    return face_detection_instant, head_pose_estimation_instant, facial_landmarks_instant, gaze_estimation_instant, mouse_controller_instant 
 
 def main():
     """
